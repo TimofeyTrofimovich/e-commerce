@@ -21,7 +21,7 @@ services:
 
 
   config-server:
-    image: config-server:v3
+    image: config-server:v4
     expose:
       - "8071"
     ports:
@@ -43,6 +43,12 @@ services:
       - "8761"
     ports:
       - "8761:8761"
+    healthcheck:
+      test: "curl --fail --silent http://admin:pass@discovery-server:8761/actuator/health | grep UP || exit 1"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8071
@@ -82,7 +88,7 @@ services:
           - product-service
     depends_on:
       discovery-server:
-        condition: service_started
+        condition: service_healthy
       database:
         condition: service_started
 
@@ -110,7 +116,7 @@ services:
           - inventory-service
     depends_on:
       discovery-server:
-        condition: service_started
+        condition: service_healthy
       database:
         condition: service_started
 

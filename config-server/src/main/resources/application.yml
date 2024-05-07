@@ -14,7 +14,7 @@ spring:
           uri: https://github.com/TimofeyTrofimovich/config.git
           search-paths:
             - "{application}/{profile}"
-          password: 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
+          password: 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
           username: "TimofeyTrofimovich"
           clone-on-start: true
         encrypt:
