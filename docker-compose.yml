@@ -1,0 +1,125 @@
+---
+version: '3.7'
+services:
+
+  database:
+    container_name: postgres
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: "microservices"
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+    networks:
+      - db
+
+
+  config-server:
+    image: config-server:v3
+    expose:
+      - "8071"
+    ports:
+      - "8071:8071"
+    healthcheck:
+      test: "curl --fail --silent http://config-server:8071/actuator/health | grep UP || exit 1"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      backend:
+        aliases:
+          - "config-server"
+
+  discovery-server:
+    image: discovery-server:newest
+    expose:
+      - "8761"
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8071
+      - eureka.client.registerWithEureka=false
+      - eureka.client.fetchRegistry=false
+    networks:
+      backend:
+        aliases:
+          - discovery-server
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+
+
+
+  product-service:
+    image: timofeytrofimovich/product-service:v1
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/microservices
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=pass
+#      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8071
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8071
+      - SPRING_PROFILES_ACTIVE=docker
+      - eureka.client.serviceUrl.defaultZone=http://admin:pass@discovery-server:8761/eureka/
+    networks:
+      db:
+        aliases:
+          - product-service
+      backend:
+        aliases:
+          - product-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      database:
+        condition: service_started
+
+
+  inventory-service:
+    image: timofeytrofimovich/inventory-service:v1
+    expose:
+      - "8081"
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/microservices
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=pass
+      - SPRING_PROFILES_ACTIVE=docker
+      #      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8071
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8071
+      - eureka.client.service-url.defaultZone=http://admin:pass@discovery-server:8761/eureka/
+    networks:
+      db:
+        aliases:
+          - inventory-service
+      backend:
+        aliases:
+          - inventory-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      database:
+        condition: service_started
+
+
+networks:
+  backend:
+  db:
+
+volumes:
+  db:
+
+

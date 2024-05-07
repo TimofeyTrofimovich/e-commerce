@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: inventory-service
+
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      uri: http://localhost:8071
+
+
+server:
+  port: 8081
+

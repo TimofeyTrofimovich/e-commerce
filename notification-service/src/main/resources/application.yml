@@ -1,0 +1,65 @@
+spring:
+  application:
+    name:
+      notification-service
+
+  zipkin:
+    base-url: htpp://localhost:9411
+  sleuth:
+    sampler:
+      probability: 1.0
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    template:
+      default-topic: notificationTopic
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.type.mapping: event:org.example.OrderPlacedEvent
+      group-id: notificationId
+
+server:
+  port: 0
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://admin:pass@localhost:8761/eureka
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      inventory:
+        register-health-indicator: true
+        event-consumer-buffer-size: 10
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state:
+          5s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+
+  timelimiter:
+    instances:
+      inventory:
+        timeout-duration:
+          seconds: 3
+  retry:
+    instances:
+      inventory:
+        max-attempts: 3
+        wait-duration:
+          seconds: 5
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/zipkin
+

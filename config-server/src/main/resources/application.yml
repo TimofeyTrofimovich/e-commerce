@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: git
+
+
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/config
+        git:
+          uri: https://github.com/TimofeyTrofimovich/config.git
+          search-paths:
+            - "{application}/{profile}"
+          password: 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
+          username: "TimofeyTrofimovich"
+          clone-on-start: true
+        encrypt:
+          enabled: true
+
+encrypt:
+  key: fje83Ki8403Iod87dne7Yjsl3THueh48jfuO9j4U2hf64Lo
+
+server:
+  port: 8071
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
