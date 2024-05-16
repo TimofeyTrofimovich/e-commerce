@@ -1,17 +1,13 @@
 package com.example.inventoryservice.service;
 
 import com.example.inventoryservice.dto.InventoryResponse;
-import com.example.inventoryservice.dto.ProductResponse;
 import com.example.inventoryservice.mapper.InventoryMapper;
 import com.example.inventoryservice.model.ProductStock;
 import com.example.inventoryservice.repository.InventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.core5.http.HttpStatus;
-import org.hibernate.sql.ast.tree.predicate.BooleanExpressionPredicate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
