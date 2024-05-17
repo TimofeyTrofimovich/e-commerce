@@ -25,20 +25,22 @@ public class InventoryService {
     }
 
     public boolean increaseProductStock(Long id) {
-        Optional<ProductStock> stockOptional = inventoryRepository.findById(id);
-        if (stockOptional.isPresent()) {
-            ProductStock productStock = stockOptional.get();
-            productStock.setStock(productStock.getStock() + 1);
-            inventoryRepository.save(productStock);
-        }
-        else {
-            if (checkProductId(id)) {
-                inventoryRepository.save(new ProductStock(id, 1));
-            }
-            else return false;
-        }
-        return true;
+        return inventoryRepository.findById(id)
+                .map(productStock -> {
+                    productStock.setStock(productStock.getStock() + 1);
+                    inventoryRepository.save(productStock);
+                    return true;
+                })
+                .orElseGet(() -> {
+                    if (checkProductId(id)) {
+                        inventoryRepository.save(new ProductStock(id, 1));
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
     }
+
 
     private boolean checkProductId(Long id) {
         return Boolean.TRUE.equals(webClientBuilder.build().get()
@@ -53,7 +55,7 @@ public class InventoryService {
         stockOptional.ifPresent(productStock -> {
             Integer stock = productStock.getStock();
             if (stock > 0) {
-                productStock.setStock(productStock.getStock() - 1);
+                productStock.setStock(stock - 1);
                 inventoryRepository.save(productStock);
             }
         });

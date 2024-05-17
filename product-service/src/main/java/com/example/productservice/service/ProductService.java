@@ -18,6 +18,7 @@ import java.util.Optional;
 public class ProductService {
 
     private final ProductMapper mapper;
+
     private final ProductRepository repository;
     public void createProduct(ProductRequest request) {
         Product product = mapper.toModel(request);
@@ -40,8 +41,7 @@ public class ProductService {
                     mapper.map(product, productRequest);
                     return product;
                 }).map(repository::save)
-
-                .map(mapper::toResponse)                ;
+                .map(mapper::toResponse);
     }
 
     public boolean deleteProduct(Integer id) {
